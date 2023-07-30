@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ספר מתכונים</title>
+    <link rel="stylesheet" href="static/main.css">
+</head>
+<body>
+    <div id="content">
+        <h1>ספר המתכונים של נמיר</h1>
+        <ul>
+            {% for path, name in recipes %}
+            <li>
+                <a href="{{path}}" class="recipeList">{{name}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

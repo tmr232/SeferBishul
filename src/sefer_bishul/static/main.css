@@ -1,0 +1,30 @@
+        @import url(http://fonts.googleapis.com/earlyaccess/alefhebrew.css);
+
+        body{
+  font-family: "Alef Hebrew",
+               “Helvetica Neue”,
+               Helvetica,
+               Arial,
+               sans-serif;
+}
+
+        #recipe {
+            width: 40em;
+            margin:auto;
+        }
+
+                #content {
+            width: 40em;
+            margin:auto;
+        }
+
+        ul {
+        list-style-type:none;
+        list-style-position:outside;
+        padding: 0;
+        }
+
+        a.recipeList {
+            color: black;
+            text-decoration: none;
+        }
