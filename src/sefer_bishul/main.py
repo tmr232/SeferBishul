@@ -1,47 +1,29 @@
 from __future__ import annotations
 
-import enum
 import importlib.resources
-import itertools
 import operator
 import os
+import re
 from pathlib import Path
-from typing import Iterable, Callable
+from typing import Callable, Iterable
 
-import typer
+import attrs
 import more_itertools
 import rich
-import attrs
-import re
-
+import typer
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 
 @attrs.frozen
 class Recipe:
     name: str
-    description: str
-    ingredients: list[str]
-    steps: list[str]
+    toplevel: Section
 
 
 def get_env() -> Environment:
     return Environment(
         loader=PackageLoader("sefer_bishul", "templates"),
         autoescape=select_autoescape(),
-    )
-
-
-def render_recipe(recipe: Recipe) -> str:
-    env = get_env()
-
-    recipe_template = env.get_template("recipe.html")
-
-    return recipe_template.render(
-        title=recipe.name,
-        description=recipe.description,
-        ingredients=recipe.ingredients,
-        steps=recipe.steps,
     )
 
 
@@ -104,7 +86,7 @@ def heading_to_renderer(heading: Heading) -> Callable[[Section], str] | None:
     if heading.level != 2:
         # Only the second level of heading is interesting here.
         return None
-    return _HEADING_TO_RENDER_MAPPING.get(heading)
+    return _HEADING_TO_RENDER_MAPPING.get(heading.text)
 
 
 @attrs.frozen
@@ -187,7 +169,8 @@ def render_nested_sections(toplevel: Section) -> str:
         # TODO: Maybe extract to generator?
         rendered_sections.append(renderer(section))
 
-        for child in section.children:
+        # Reverse insertion order as pop-order is reversed.
+        for child in reversed(section.children):
             stack.append((child, renderer))
 
     return "\n".join(rendered_sections)
@@ -213,20 +196,8 @@ def parse_recipe_text(recipe: str) -> Recipe:
     # Now that we have the sections, let's generate the recipe!
     sections = list(sections)
 
-    name = sections[0].heading.text
-    description = "\n".join(filter(bool, sections[0].content))
-
-    ingredients = list(filter(bool, sections[1].content))
-
-    steps = [
-        "\n".join(lines)
-        for lines in more_itertools.split_at(sections[2].content, lambda s: not s)
-    ]
-    rich.print(steps)
-
-    return Recipe(
-        name=name, description=description, ingredients=ingredients, steps=steps
-    )
+    toplevel = nest_sections(sections)
+    return Recipe(toplevel=toplevel, name=toplevel.heading.text)
 
 
 def parse_recipe(source_path) -> Recipe:
@@ -270,12 +241,13 @@ def main(recipes_path: Path, output_dir: Path):
             source_path = os.path.join(root, file)
             recipe = parse_recipe(Path(source_path))
             recipes[file] = recipe
+            rich.print(recipe)
 
     copy_static_content(output_dir)
 
     for filename, recipe in recipes.items():
         filename = os.path.splitext(filename)[0]
-        recipe_html = render_recipe(recipe)
+        recipe_html = render_recipe_from_nested(recipe.toplevel)
         (output_dir / f"{filename}.html").write_text(recipe_html)
 
     # Then we generate the index!
