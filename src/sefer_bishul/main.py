@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import importlib.resources
 import operator
 import os
 from pathlib import Path
+from typing import Iterable
 
 import typer
 import more_itertools
@@ -40,41 +43,72 @@ def render_recipe(recipe: Recipe) -> str:
     )
 
 
-def parse_h1(line: str) -> str | None:
-    if match := re.match(r"#([^#].*)", line):
-        return match.group(1).strip()
+@attrs.frozen
+class Heading:
+    text: str
+    level: int
+
+
+Line = str | Heading
+
+
+@attrs.frozen
+class Section:
+    heading: Heading
+    content: list[str]
+
+    @staticmethod
+    def from_lines(lines: Iterable[Line]) -> Section:
+        heading, *content = lines
+        assert isinstance(heading, Heading)
+        return Section(heading=heading, content=content)
+
+
+def parse_heading(line: str) -> Heading | None:
+    if match := re.match(r"(#+)(.*)", line):
+        level = len(match.group(1))
+        text = match.group(2).strip()
+        return Heading(text=text, level=level)
     return None
+
+
+def parse_line(line: str) -> str | Heading:
+    if heading := parse_heading(line):
+        return heading
+    return line
+
+
+def parse_recipe_text(recipe: str) -> Recipe:
+    parsed_lines = map(parse_line, recipe.splitlines())
+
+    section_lines = more_itertools.split_before(
+        parsed_lines, lambda s: isinstance(s, Heading)
+    )
+
+    sections = map(Section.from_lines, section_lines)
+
+    # Now that we have the sections, let's generate the recipe!
+    sections = list(sections)
+
+    name = sections[0].heading.text
+    description = "\n".join(filter(bool, sections[0].content))
+
+    ingredients = list(filter(bool, sections[1].content))
+
+    steps = [
+        "\n".join(lines)
+        for lines in more_itertools.split_at(sections[2].content, lambda s: not s)
+    ]
+    rich.print(steps)
+
+    return Recipe(
+        name=name, description=description, ingredients=ingredients, steps=steps
+    )
 
 
 def parse_recipe(source_path) -> Recipe:
     source = source_path.read_text("utf8")
-    # First, we find all the titles (start with "#") and split by them.
-    blocks = list(
-        more_itertools.split_before(source.splitlines(), lambda s: s.startswith("#"))
-    )
-
-    # First block should be an h1 block with the recipe name
-
-    assert parse_h1(blocks[0][0])
-
-    name = parse_h1(blocks[0][0])
-    description = "\n".join(blocks[0][1:])
-
-    # Filter to remove empty lines
-    ingredients = [block for block in blocks[1][1:] if block]
-
-    steps = [
-        "\n".join(lines)
-        for lines in more_itertools.split_at(blocks[2][1:], lambda s: not s.strip())
-    ]
-    # Filter to remove empty steps
-    steps = list(filter(bool, steps))
-
-    recipe = Recipe(
-        name=name, description=description, ingredients=ingredients, steps=steps
-    )
-
-    return recipe
+    return parse_recipe_text(source)
 
 
 def copy_static_content(output_dir: Path):
