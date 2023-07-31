@@ -1,34 +1,69 @@
-        @import url(http://fonts.googleapis.com/earlyaccess/alefhebrew.css);
+@import url(http://fonts.googleapis.com/earlyaccess/alefhebrew.css);
 
-        body{
-  font-family: "Alef Hebrew",
-               “Helvetica Neue”,
-               Helvetica,
-               Arial,
-               sans-serif;
+body {
+  font-family: "Alef Hebrew", “Helvetica Neue”, Helvetica, Arial, sans-serif;
+  background-color: lightgray;
+}
+/* 
+#background {
+  background-color: white;
+  box-shadow: grey 5px 5px;
+  margin: auto;
+  padding: 2em;
+} */
+
+#recipe {
+  width: 40em;
+  margin: auto;
+  background-color: white;
+  padding: 2em;
+  padding-top: 1em;
+  filter: drop-shadow(10px 10px 4px gray);
 }
 
-        #recipe {
-            width: 40em;
-            margin:auto;
-        }
+#content {
+  width: 40em;
+  margin: auto;
+  background-color: white;
+  padding: 2em;
+  padding-top: 1em;
+  filter: drop-shadow(10px 10px 4px gray);
+}
 
-                #content {
-            width: 40em;
-            margin:auto;
-        }
+.ingredients ul, #content ul {
+  list-style-type: none;
+  list-style-position: outside;
+  padding: 0;
+}
 
-        ul {
-        list-style-type:none;
-        list-style-position:outside;
-        padding: 0;
-        }
+a.recipeList {
+  color: black;
+  text-decoration: none;
+}
 
-        a.recipeList {
-            color: black;
-            text-decoration: none;
-        }
+a.recipeList:hover {
+  text-decoration: underline;
+}
 
-        a.recipeList:hover {
-            text-decoration: underline;
-        }
+.header {
+  width: 40em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header a {
+  color: black;
+  text-decoration: none;
+}
+
+.header a:hover {
+  text-decoration: underline;
+}
+
+.header .underline {
+  display: block;
+  height: 1px;
+  width: 15em;
+  background-color: black;
+}
