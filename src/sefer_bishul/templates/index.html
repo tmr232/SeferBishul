@@ -14,13 +14,19 @@
         <div class="underline"></div>
       </div>
       <h1>ספר המתכונים של נמיר</h1>
+
+      {% for level, category in categories %}
+      {% if category.name %}
+      <h{{level}}>{{category.name}}</h{{level+1}}>
+      {% endif %}
       <ul>
-        {% for path, name in recipes %}
+        {% for path, recipe in category.recipes.items() %}
         <li>
-          <a href="{{path}}" class="recipeList">{{name}}</a>
+          <a href="{{path}}.html" class="recipeList">{{recipe.name}}</a>
         </li>
         {% endfor %}
       </ul>
+      {% endfor %}
     </div>
   </body>
 </html>

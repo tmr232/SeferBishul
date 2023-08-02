@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import Callable
 
+import attrs
 import more_itertools
 import rich
 import typer
@@ -136,24 +137,65 @@ def render_index(recipes: dict[str, Recipe]) -> str:
     return index_template.render(recipes=recipe_list)
 
 
-def main(recipes_path: Path, output_dir: Path):
-    recipes = {}
-    for root, dirs, files in os.walk(recipes_path):
-        for file in files:
-            source_path = os.path.join(root, file)
-            recipe = parse_recipe(Path(source_path))
-            recipes[file] = recipe
-            rich.print(recipe)
+@attrs.frozen
+class Category:
+    name: str | None
+    children: list[Category]
+    recipes: dict[Path, Recipe]
 
+    def __iter__(self):
+        yield 1, self
+        for child in self.children:
+            for level, category in child:
+                yield level + 1, category
+
+
+def load_category(root: Path) -> tuple[Category, dict[Path, Recipe]]:
+    recipes: dict[Path, Recipe] = {}
+    children = []
+    index = {}
+    for entry in os.listdir(root):
+        path = root / entry
+        if os.path.isfile(path):
+            recipe = parse_recipe(path)
+            recipes[path.relative_to(root).with_suffix("")] = recipe
+            index[path] = recipe
+        elif os.path.isdir(path):
+            category, cat_index = load_category(path)
+            children.append(category)
+            index.update(cat_index)
+        else:
+            raise RuntimeError(f"Unexpected entry: {path}")
+
+    return Category(name=root.name, children=children, recipes=recipes), index
+
+
+def load_recipes(recipes_path: Path) -> tuple[Category, dict[Path, Recipe]]:
+    root, index = load_category(recipes_path)
+    return attrs.evolve(root, name=None), index
+
+
+def render_categories(root_category: Category) -> str:
+    env = get_env()
+    index_template = env.get_template("index.html")
+    return index_template.render(categories=root_category)
+
+
+def main(recipes_path: Path, output_dir: Path):
     copy_static_content(output_dir)
 
-    for filename, recipe in recipes.items():
-        filename = os.path.splitext(filename)[0]
+    root_category, recipe_index = load_recipes(recipes_path)
+
+    for path, recipe in recipe_index.items():
+        new_path = output_dir / path.relative_to(recipes_path)
+        new_path = new_path.with_suffix(".html")
+        os.makedirs(new_path.parent, exist_ok=True)
+
         recipe_html = render_recipe_from_nested(recipe.toplevel)
-        (output_dir / f"{filename}.html").write_text(recipe_html)
+        new_path.write_text(recipe_html)
 
     # Then we generate the index!
-    index = render_index(recipes)
+    index = render_categories(root_category)
     (output_dir / "index.html").write_text(index)
 
 
