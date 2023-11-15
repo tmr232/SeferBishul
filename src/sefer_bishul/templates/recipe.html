@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>{{ title }}</title>
+    <style>
+        @media only screen and (max-width: 1000px) {
+        body{
+            font-size: 2.5vmax;
+            }
+        }
+
+        @media print {
+        body {
+        }
+    </style>
+</head>
+<body>
+{{ content | safe }}
+</body>
+</html>
