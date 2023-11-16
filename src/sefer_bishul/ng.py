@@ -1,24 +1,23 @@
 import enum
 from collections import defaultdict
-from markdown_it import MarkdownIt
-from markdown_it.token import Token
-from markdown_it.renderer import RendererHTML
-from markdown_it.utils import OptionsDict, EnvType
-from itertools import takewhile
 from glob import iglob
 from pathlib import Path
-from typing import Iterator, Sequence, NamedTuple
-from typer import Typer
-from jinja2 import Environment, PackageLoader, select_autoescape
+from typing import Iterator, NamedTuple, Sequence
+
 import attrs
+from jinja2 import Environment, PackageLoader, select_autoescape
+from markdown_it import MarkdownIt
+from markdown_it.renderer import RendererHTML
+from markdown_it.token import Token
+from markdown_it.utils import EnvType, OptionsDict
 
 
 def get_title(tokens: list[Token]) -> str:
-    tokens = iter(tokens)
+    tokens: Iterator[Token] = iter(tokens)  # type:ignore[no-redef]
     for token in tokens:
         if token.tag == "h1":
             break
-    return next(tokens).content
+    return next(tokens).content  # type:ignore[call-overload]
 
 
 def get_recipes(root: Path | str) -> Iterator[Path]:
@@ -73,20 +72,13 @@ class RecipeRenderer(RendererHTML):
     def render(
         self, tokens: Sequence[Token], options: OptionsDict, env: EnvType
     ) -> str:
-        # return super().render(tokens, options, env) + self.__close_divs()
         return super().render(tokens, options, env) + "</div>" * 2
 
     def heading_open(
         self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType
     ) -> str:
-        result = ""
         token = tokens[idx]
         prefix = self.__sm.process(token)
-        # if self.__current_heading >= token.tag:
-        #     result += "</div>"
-        # self.__current_heading = token.tag
-        # result += "<div>"
-        # return result + self.renderToken(tokens, idx, options, env)
         return prefix + self.renderToken(tokens, idx, options, env)
 
 
@@ -107,7 +99,7 @@ def generate_toc(recipes: list[RecipeInfo]) -> list[RecipeInfo | RecipeGroup]:
         group, _, _ = recipe.link.rpartition("/")
         groups[group].append(recipe)
 
-    result = sorted(groups.pop("", []))
+    result: list[RecipeInfo | RecipeGroup] = sorted(groups.pop("", []))
     for name, recipes in sorted(groups.items()):
         result.append(RecipeGroup(name=name, recipes=sorted(recipes)))
 
