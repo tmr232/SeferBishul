@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterator, NamedTuple, Sequence
 
 import attrs
+import typer
 from jinja2 import Environment, PackageLoader, select_autoescape
 from markdown_it import MarkdownIt
 from markdown_it.renderer import RendererHTML
@@ -106,10 +107,7 @@ def generate_toc(recipes: list[RecipeInfo]) -> list[RecipeInfo | RecipeGroup]:
     return result
 
 
-def main():
-    source = Path("../../recipes")
-    output = Path("../../html")
-
+def build_book(source: Path, output: Path):
     recipe_info: list[RecipeInfo] = []
 
     for path in get_recipes(source):
@@ -139,6 +137,10 @@ def main():
     toc_info = generate_toc(recipe_info)
     toc = get_env().get_template("toc.html.j2").render(toc=toc_info)
     (output / "index.html").write_text(toc)
+
+
+def main():
+    typer.run(build_book)
 
 
 if __name__ == "__main__":
