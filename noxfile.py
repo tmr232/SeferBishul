@@ -28,4 +28,4 @@ def test(session: Session) -> None:
 
 @nox.session(python=False)
 def build(session: Session) -> None:
-    session.run("build-book", "recipes", "public")
+    session.run("build-book", "recipes", "images", "public")
