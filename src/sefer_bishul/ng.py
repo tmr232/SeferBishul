@@ -36,7 +36,6 @@ def get_hero(tokens: list[Token]) -> str:
     tokens = list(_iter())
     for token in tokens:
         if token.type == "image":
-            rich.print(token)
             break
     else:
         return None
@@ -104,8 +103,8 @@ class RecipeRenderer(RendererHTML):
         prefix = self.__sm.process(token)
         return prefix + self.renderToken(tokens, idx, options, env)
 
-    # def image(self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
-    #     return ""
+    def image(self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
+        return ""
 
 
 class RecipeInfo(NamedTuple):
@@ -193,7 +192,7 @@ def build_book(source: Path, images: Path, output: Path):
 
 
     toc = get_env().get_template("pics.html.j2").render(recipes=recipe_info)
-    (output / "pics.html").write_text(toc)
+    (output / "picture-menu.html").write_text(toc)
 
 
 def main():

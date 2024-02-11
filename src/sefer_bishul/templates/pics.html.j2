@@ -46,7 +46,7 @@
       line-height: 1.5em;
     }
 
-    .toc a {
+    a {
       color: black;
       text-decoration: none;
     }
@@ -54,13 +54,32 @@
     .toc a:hover {
       text-decoration: underline;
     }
+
+    .gallery {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .picture {
+        padding: 20px;
+        width: 400px;
+        a {
+        display: block;
+}
+    }
+     .picture img {
+        width: 100%;
+        overflow: clip;
+    }
   </style>
 </head>
 <body>
   <h1>ספר המתכונים של נמיר</h1>
+  <div class="gallery">
   {% for recipe in recipes %}
   {% if recipe.hero %}
-  <div>
+  <div class="picture">
   <a href="{{ recipe.link }}">
     <h2>{{ recipe.name }}</h2>
     <img src="{{ recipe.hero }}"/>
@@ -68,6 +87,7 @@
   </div>
   {% endif %}
   {% endfor %}
+  </div>
 </body>
 
 </html>
