@@ -23,6 +23,7 @@ attrs = "^23.1.0"
 markdown-it-py = "^3.0.0"
 pillow = "^10.2.0"
 nox = "^2023.4.22"
+types-pillow = "^10.2.0.20240206"
 
 
 [tool.poetry.group.dev.dependencies]

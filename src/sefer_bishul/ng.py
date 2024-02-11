@@ -4,10 +4,9 @@ import urllib.parse
 from collections import defaultdict
 from glob import iglob
 from pathlib import Path
-from typing import Iterator, NamedTuple, Sequence
+from typing import Iterator, NamedTuple, Sequence, cast
 
 import attrs
-import rich
 import typer
 from jinja2 import Environment, PackageLoader, select_autoescape
 from markdown_it import MarkdownIt
@@ -25,11 +24,12 @@ def get_title(tokens: list[Token]) -> str:
     return next(tokens).content  # type:ignore[call-overload]
 
 
-def get_hero(tokens: list[Token]) -> str:
+def get_hero(tokens: list[Token]) -> str | None:
     def _iter():
         for token in tokens:
             if token.type == "inline":
-                yield from token.children
+                if token.children is not None:
+                    yield from token.children
             else:
                 yield token
 
@@ -39,7 +39,9 @@ def get_hero(tokens: list[Token]) -> str:
             break
     else:
         return None
-    return urllib.parse.unquote(token.attrs.get("src"))  # type:ignore[call-overload]
+    return urllib.parse.unquote(
+        cast(str, token.attrs.get("src"))
+    )  # type:ignore[call-overload]
 
 
 def get_recipes(root: Path | str) -> Iterator[Path]:
@@ -103,14 +105,16 @@ class RecipeRenderer(RendererHTML):
         prefix = self.__sm.process(token)
         return prefix + self.renderToken(tokens, idx, options, env)
 
-    def image(self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
+    def image(
+        self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType
+    ) -> str:
         return ""
 
 
 class RecipeInfo(NamedTuple):
     name: str
     link: str
-    hero: str
+    hero: str | None
 
 
 class RecipeGroup(NamedTuple):
@@ -189,7 +193,6 @@ def build_book(source: Path, images: Path, output: Path):
     toc_info = generate_toc(recipe_info)
     toc = get_env().get_template("toc.html.j2").render(toc=toc_info)
     (output / "index.html").write_text(toc)
-
 
     toc = get_env().get_template("pics.html.j2").render(recipes=recipe_info)
     (output / "picture-menu.html").write_text(toc)
