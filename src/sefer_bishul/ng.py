@@ -1,16 +1,20 @@
 import enum
+import os
+import urllib.parse
 from collections import defaultdict
 from glob import iglob
 from pathlib import Path
 from typing import Iterator, NamedTuple, Sequence
 
 import attrs
+import rich
 import typer
 from jinja2 import Environment, PackageLoader, select_autoescape
 from markdown_it import MarkdownIt
 from markdown_it.renderer import RendererHTML
 from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
+from PIL import Image
 
 
 def get_title(tokens: list[Token]) -> str:
@@ -19,6 +23,24 @@ def get_title(tokens: list[Token]) -> str:
         if token.tag == "h1":
             break
     return next(tokens).content  # type:ignore[call-overload]
+
+
+def get_hero(tokens: list[Token]) -> str:
+    def _iter():
+        for token in tokens:
+            if token.type == "inline":
+                yield from token.children
+            else:
+                yield token
+
+    tokens = list(_iter())
+    for token in tokens:
+        if token.type == "image":
+            rich.print(token)
+            break
+    else:
+        return None
+    return urllib.parse.unquote(token.attrs.get("src"))  # type:ignore[call-overload]
 
 
 def get_recipes(root: Path | str) -> Iterator[Path]:
@@ -82,10 +104,14 @@ class RecipeRenderer(RendererHTML):
         prefix = self.__sm.process(token)
         return prefix + self.renderToken(tokens, idx, options, env)
 
+    # def image(self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
+    #     return ""
+
 
 class RecipeInfo(NamedTuple):
     name: str
     link: str
+    hero: str
 
 
 class RecipeGroup(NamedTuple):
@@ -107,13 +133,39 @@ def generate_toc(recipes: list[RecipeInfo]) -> list[RecipeInfo | RecipeGroup]:
     return result
 
 
-def build_book(source: Path, output: Path):
-    recipe_info: list[RecipeInfo] = []
+@attrs.define
+class ImageManager:
+    in_dir: Path
+    in_url: str
+    out_dir: Path
 
+    def add_image(self, url: str):
+        relative_path = Path(url).relative_to(self.in_url)
+        in_path = self.in_dir / relative_path
+        out_path = self.out_dir / relative_path
+
+        self._process(in_path, out_path)
+
+    def _process(self, in_path: Path, out_path: Path):
+        im = Image.open(in_path)
+        im.thumbnail((512, 512))
+        im.save(out_path)
+
+
+def build_book(source: Path, images: Path, output: Path):
+    recipe_info: list[RecipeInfo] = []
+    os.makedirs(output / "images", exist_ok=True)
+    image_manager = ImageManager(
+        in_dir=images, in_url="/images", out_dir=output / "images"
+    )
     for path in get_recipes(source):
         md = MarkdownIt(renderer_cls=RecipeRenderer)
         recipe_text = path.read_text()
-        title = get_title(md.parse(recipe_text))
+        tokens = md.parse(recipe_text)
+        title = get_title(tokens)
+        hero = get_hero(tokens)
+        if hero:
+            image_manager.add_image(hero)
         rendered = md.render(recipe_text)
 
         html = (
@@ -131,12 +183,17 @@ def build_book(source: Path, output: Path):
                 link=str(path.relative_to(source).with_suffix(".html")).replace(
                     "\\", "/"
                 ),
+                hero=hero,
             )
         )
 
     toc_info = generate_toc(recipe_info)
     toc = get_env().get_template("toc.html.j2").render(toc=toc_info)
     (output / "index.html").write_text(toc)
+
+
+    toc = get_env().get_template("pics.html.j2").render(recipes=recipe_info)
+    (output / "pics.html").write_text(toc)
 
 
 def main():
