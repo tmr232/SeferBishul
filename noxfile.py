@@ -24,3 +24,8 @@ def lint(session: Session) -> None:
 @nox.session(python=False)
 def test(session: Session) -> None:
     session.run("pytest", *session.posargs)
+
+
+@nox.session(python=False)
+def build(session: Session) -> None:
+    session.run("build-book", "recipes", "public")
