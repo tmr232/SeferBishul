@@ -186,7 +186,8 @@ def build_book(source: Path, images: Path, output: Path):
                 link=str(path.relative_to(source).with_suffix(".html")).replace(
                     "\\", "/"
                 ),
-                hero=hero.lstrip("/"), # Temporary hack, because we don't take the website address
+                # Temporary hack, because we don't take the website address
+                hero=hero.lstrip("/") if hero else None,
             )
         )
 
