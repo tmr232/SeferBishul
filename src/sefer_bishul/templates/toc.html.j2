@@ -46,7 +46,8 @@
       line-height: 1.5em;
     }
 
-    .toc a {
+    .toc a,
+     h1 a {
       color: black;
       text-decoration: none;
     }
@@ -61,7 +62,8 @@
 {%- endmacro %}
 
 <body>
-  <h1>ספר המתכונים של נמיר</h1>
+  <h1>ספר המתכונים של נמיר<a href="/picture-menu.html">🖼️</a></h1>
+
   <div class="toc">
     <ul>
       {% for recipe in toc %}
