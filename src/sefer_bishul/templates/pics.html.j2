@@ -64,13 +64,20 @@
     .picture {
         padding: 20px;
         width: 400px;
+        height: 400px;
+        overflow: clip;
         a {
         display: block;
+}       div {
+border-radius: 10px;
+overflow: clip;
+filter: drop-shadow(5px 5px 5px black);
+max-height: 300px;
 }
     }
      .picture img {
         width: 100%;
-        overflow: clip;
+        display: block;
     }
   </style>
 </head>
@@ -82,7 +89,9 @@
   <div class="picture">
   <a href="{{ recipe.link }}">
     <h2>{{ recipe.name }}</h2>
+    <div>
     <img src="{{ recipe.hero }}"/>
+    </div>
     </a>
   </div>
   {% endif %}
