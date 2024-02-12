@@ -56,46 +56,51 @@
     }
 
     .gallery {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
     }
 
     .picture {
-        padding: 20px;
-        width: 400px;
-        height: 400px;
+      padding: 20px;
+      width: 400px;
+      height: 400px;
+      overflow: clip;
+
+      a {
+        display: block;
+      }
+
+      div {
+        border-radius: 10px;
         overflow: clip;
-        a {
-        display: block;
-}       div {
-border-radius: 10px;
-overflow: clip;
-filter: drop-shadow(5px 5px 5px black);
-max-height: 300px;
-}
+        filter: drop-shadow(5px 5px 5px black);
+        max-height: 300px;
+      }
     }
-     .picture img {
-        width: 100%;
-        display: block;
+
+    .picture img {
+      width: 100%;
+      display: block;
     }
   </style>
 </head>
+
 <body>
   <h1>ספר המתכונים של נמיר</h1>
   <div class="gallery">
-  {% for recipe in recipes %}
-  {% if recipe.hero %}
-  <div class="picture">
-  <a href="{{ recipe.link }}">
-    <h2>{{ recipe.name }}</h2>
-    <div>
-    <img src="{{ recipe.hero }}"/>
+    {% for recipe in recipes %}
+    {% if recipe.hero %}
+    <div class="picture">
+      <a href="{{ recipe.link }}">
+        <h2>{{ recipe.name }}</h2>
+        <div>
+          <img src="{{ recipe.hero }}" />
+        </div>
+      </a>
     </div>
-    </a>
-  </div>
-  {% endif %}
-  {% endfor %}
+    {% endif %}
+    {% endfor %}
   </div>
 </body>
 
