@@ -1,48 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <title>{{ title }}</title>
-    <style>
-      @media only screen and (max-width: 1000px) {
-        body {
-          font-size: 2.5vmax;
-        }
-        img {
-          width: 100%;
-        }
-      }
+    <head>
+        <meta charset="UTF-8" />
+        <title>{{ title }}</title>
+        <style>
+            @media only screen and (max-width: 1000px) {
+                body {
+                    font-size: 2.5vmax;
+                }
+                img {
+                    width: 100%;
+                }
+            }
 
-      @media print, screen and (min-width: 1001px) {
-        body {
-        }
+            @media print, screen and (min-width: 1001px) {
+                body {
+                }
 
-        .recipe-body {
-          display: grid;
-          grid-template-columns: 1fr 3fr;
-        }
-        .ingredients {
-          line-height: 1.3;
-          font-size: 0.8em;
-          padding-left: 2em;
-          border-left: 1px solid black;
-        }
-        .ingredients li {
-          list-style: none;
-          padding-right: 2em;
-          text-indent: -2em;
-        }
-        .ingredients ul {
-          padding-right: 0;
-        }
+                .recipe-body {
+                    display: grid;
+                    grid-template-columns: 1fr 3fr;
+                }
+                .ingredients {
+                    line-height: 1.3;
+                    font-size: 0.8em;
+                    padding-left: 2em;
+                    border-left: 1px solid black;
+                }
+                .ingredients li {
+                    list-style: none;
+                    padding-right: 2em;
+                    text-indent: -2em;
+                }
+                .ingredients ul {
+                    padding-right: 0;
+                }
 
-        .prep {
-          margin-right: 2em;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    {{ content | safe }}
-  </body>
+                .prep {
+                    margin-right: 2em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        {{ content | safe }}
+        <script async src="static/wakelock.js"></script>
+    </body>
 </html>

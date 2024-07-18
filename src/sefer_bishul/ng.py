@@ -1,5 +1,6 @@
 import enum
 import os
+import shutil
 import urllib.parse
 from collections import defaultdict
 from glob import iglob
@@ -155,6 +156,12 @@ class ImageManager:
         im.save(out_path)
 
 
+def copy_static_files(output: Path) -> None:
+    shutil.copytree(
+        Path(__file__).parent / "static", output / "static", dirs_exist_ok=True
+    )
+
+
 def build_book(source: Path, images: Path, output: Path):
     recipe_info: list[RecipeInfo] = []
     os.makedirs(output / "images", exist_ok=True)
@@ -197,6 +204,8 @@ def build_book(source: Path, images: Path, output: Path):
 
     toc = get_env().get_template("pics.html.j2").render(recipes=recipe_info)
     (output / "picture-menu.html").write_text(toc)
+
+    copy_static_files(output)
 
 
 def main():
