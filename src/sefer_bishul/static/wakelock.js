@@ -3,6 +3,7 @@ let isSupported = false;
 
 if ('wakeLock' in navigator) {
   isSupported = true;
+  window.alert("Supported!");
 } else {
   window.alert("Unsupported!");
 }
@@ -23,9 +24,11 @@ if (isSupported) {
     }
   } // requestWakeLock()
 
+  window.alert("Going to request a lock!");
   requestWakeLock();
 
   const handleVisibilityChange = () => {
+    window.alert("Gotta love handling things!");
     if (document.visibilityState === 'visible') {
       requestWakeLock();
     }
