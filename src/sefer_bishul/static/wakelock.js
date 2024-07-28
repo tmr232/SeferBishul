@@ -3,9 +3,6 @@ let isSupported = false;
 
 if ('wakeLock' in navigator) {
   isSupported = true;
-  window.alert("Supported!");
-} else {
-  window.alert("Unsupported!");
 }
 
 if (isSupported) {
@@ -16,19 +13,15 @@ if (isSupported) {
   const requestWakeLock = async () => {
     try {
       wakeLock = await navigator.wakeLock.request('screen');
-      window.alert("Acquired Lock!");
     } catch (err) {
       // if wake lock request fails - usually system related, such as battery
       console.log(err);
-      window.alert(err);
     }
   } // requestWakeLock()
 
-  window.alert("Going to request a lock!");
   requestWakeLock();
 
   const handleVisibilityChange = () => {
-    window.alert("Gotta love handling things!");
     if (document.visibilityState === 'visible') {
       requestWakeLock();
     }
