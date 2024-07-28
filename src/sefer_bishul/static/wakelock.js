@@ -15,9 +15,11 @@ if (isSupported) {
   const requestWakeLock = async () => {
     try {
       wakeLock = await navigator.wakeLock.request('screen');
+      window.alert("Acquired Lock!");
     } catch (err) {
       // if wake lock request fails - usually system related, such as battery
       console.log(err);
+      window.alert(err);
     }
   } // requestWakeLock()
 
