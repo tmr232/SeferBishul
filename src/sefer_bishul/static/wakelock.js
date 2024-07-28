@@ -3,6 +3,8 @@ let isSupported = false;
 
 if ('wakeLock' in navigator) {
   isSupported = true;
+} else {
+  window.alert("Unsupported!");
 }
 
 if (isSupported) {
