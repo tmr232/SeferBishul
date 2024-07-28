@@ -22,8 +22,7 @@ if (isSupported) {
   requestWakeLock();
 
   const handleVisibilityChange = () => {
-    if (wakeLock !== null && document.visibilityState === 'visible') {
-      console.log("Request!");
+    if (document.visibilityState === 'visible') {
       requestWakeLock();
     }
   }
