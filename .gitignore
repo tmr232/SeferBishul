@@ -13,3 +13,13 @@ dist/
 # IDE settings
 .vscode/
 .idea/
+
+# Node.js
+node_modules
+
+.pytest_cache
+.ruff_cache
+
+public
+
+__pycache__/
