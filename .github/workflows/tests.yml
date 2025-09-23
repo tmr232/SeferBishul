@@ -1,21 +1,21 @@
 name: Linting & Tests
 
 on:
-    push:
+  push:
 
 jobs:
-    lint:
-        name: Lint & Build
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  lint:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Install uv
-              uses: astral-sh/setup-uv@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
-            - name: Run Linters
-              run: uv run nox -s lint
+      - name: Run Linters
+        run: uv run nox -s lint
 
-            - name: Build
-              run: |
-                  uv run nox -s build
+      - name: Build
+        run: |
+          uv run nox -s build
