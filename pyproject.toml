@@ -1,56 +1,40 @@
-[tool.poetry]
+[project]
 name = "sefer-bishul"
 version = "0.1.0"
 description = ""
-authors = ["Tamir Bahar"]
-license = "MIT"
+authors = [{ name = "Tamir Bahar" }]
+requires-python = ">=3.13, <3.14"
 readme = "README.md"
+license = "MIT"
+dependencies = [
+    "typer>=0.9.0",
+    "jinja2>=3.1.2",
+    "attrs>=23.1.0",
+    "markdown-it-py>=3.0.0",
+    "pillow>=10.2.0",
+    "nox>=2023.4.22",
+    "types-pillow>=10.2.0.20240206",
+]
 
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry.scripts]
+
+[project.scripts]
 build-book = "sefer_bishul.ng:main"
 
-
-[tool.poetry.dependencies]
-python = "^3.11"
-typer = "^0.9.0"
-jinja2 = "^3.1.2"
-attrs = "^23.1.0"
-markdown-it-py = "^3.0.0"
-pillow = "^10.2.0"
-nox = "^2023.4.22"
-types-pillow = "^10.2.0.20240206"
-
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.0.261"
-black = "^24.0.0"
-isort = "^5.12.0"
-mypy = "^1.2.0"
-pytest = "^7.3.0"
-pytest-cov = "^4.0.0"
-
-
-[tool.black]
-line-length = 88
-target-version = ['py311']
-
-[tool.isort]
-# Configure isort to work without access to site-packages
-known_first_party = ["sefer_bishul", "tests"]
-
-# Settings for Black compatibility
-profile = "black"
-line_length = 88
-
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=7.3.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.13.1",
+]
 
 [tool.mypy]
 check_untyped_defs = true
-python_version = "3.11"
 
 [tool.pytest.ini_options]
 xfail_strict = true
@@ -59,11 +43,9 @@ testpaths = [
     "tests",
 ]
 
-
-[tool.ruff]
+[tool.ruff.lint]
 # Avoid automatic removal of unused variables
 unfixable = ['F841'] # unused-variable
-
 
 [tool.coverage]
 report.skip_covered = true

@@ -40,9 +40,7 @@ def get_hero(tokens: list[Token]) -> str | None:
             break
     else:
         return None
-    return urllib.parse.unquote(
-        cast(str, token.attrs.get("src"))
-    )  # type:ignore[call-overload]
+    return urllib.parse.unquote(cast(str, token.attrs.get("src")))  # type:ignore[call-overload]
 
 
 def get_recipes(root: Path | str) -> Iterator[Path]:
