@@ -18,11 +18,11 @@ from PIL import Image
 
 
 def get_title(tokens: list[Token]) -> str:
-    tokens: Iterator[Token] = iter(tokens)  # type:ignore[no-redef]
-    for token in tokens:
+    token_iterator: Iterator[Token] = iter(tokens)
+    for token in token_iterator:
         if token.tag == "h1":
             break
-    return next(tokens).content  # type:ignore[call-overload]
+    return next(token_iterator).content
 
 
 def get_hero(tokens: list[Token]) -> str | None:
@@ -40,7 +40,7 @@ def get_hero(tokens: list[Token]) -> str | None:
             break
     else:
         return None
-    return urllib.parse.unquote(cast(str, token.attrs.get("src")))  # type:ignore[call-overload]
+    return urllib.parse.unquote(cast(str, token.attrs.get("src")))
 
 
 def get_recipes(root: Path | str) -> Iterator[Path]:
