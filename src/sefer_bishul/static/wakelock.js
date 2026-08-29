@@ -1,32 +1,39 @@
-// test support
-let isSupported = false;
-
 if ('wakeLock' in navigator) {
-  isSupported = true;
-}
-
-if (isSupported) {
-  // create a reference for the wake lock
   let wakeLock = null;
+  let requesting = false;
 
-  // create an async function to request a wake lock
   const requestWakeLock = async () => {
+    if (
+      wakeLock !== null ||
+      requesting ||
+      document.visibilityState !== 'visible'
+    ) {
+      return;
+    }
+
+    requesting = true;
     try {
       wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
     } catch (err) {
-      // if wake lock request fails - usually system related, such as battery
-      console.log(err);
+      console.log('Could not acquire screen wake lock:', err);
+    } finally {
+      requesting = false;
     }
-  } // requestWakeLock()
+  };
 
-  requestWakeLock();
+  // Some mobile browsers require a user gesture before granting a wake lock.
+  // The first normal interaction enables it by default, without a special control.
+  for (const eventName of ['pointerdown', 'touchstart', 'keydown']) {
+    document.addEventListener(eventName, requestWakeLock, { passive: true });
+  }
 
-  const handleVisibilityChange = () => {
+  // A wake lock is released when the page becomes hidden.
+  document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       requestWakeLock();
     }
-  }
-
-  // Losing visibility releases the lock, so we make sure to request it again.
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-} // isSupported
+  });
+}

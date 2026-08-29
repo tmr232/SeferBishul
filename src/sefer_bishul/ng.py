@@ -176,21 +176,26 @@ def build_book(source: Path, images: Path, output: Path):
             image_manager.add_image(hero)
         rendered = md.render(recipe_text)
 
-        html = (
-            get_env().get_template("recipe.html").render(title=title, content=rendered)
-        )
-
         target = (output / path.relative_to(source)).with_suffix(".html")
         target.parent.mkdir(exist_ok=True)
+
+        wakelock_script = (
+            (output / "static" / "wakelock.js")
+            .relative_to(target.parent, walk_up=True)
+            .as_posix()
+        )
+        html = (
+            get_env()
+            .get_template("recipe.html")
+            .render(title=title, content=rendered, wakelock_script=wakelock_script)
+        )
 
         target.write_text(html)
 
         recipe_info.append(
             RecipeInfo(
                 name=title,
-                link=str(path.relative_to(source).with_suffix(".html")).replace(
-                    "\\", "/"
-                ),
+                link=path.relative_to(source).with_suffix(".html").as_posix(),
                 # Temporary hack, because we don't take the website address
                 hero=hero.lstrip("/") if hero else None,
             )
