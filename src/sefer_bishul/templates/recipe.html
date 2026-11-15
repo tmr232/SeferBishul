@@ -2,6 +2,8 @@
 <html lang="he" dir="rtl">
     <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="{{ root_prefix }}/static/tags.css" />
         <title>{{ title }}</title>
         <style>
             @media only screen and (max-width: 1000px) {
@@ -43,6 +45,17 @@
         </style>
     </head>
     <body>
+        <nav class="recipe-nav" aria-label="ניווט ראשי">
+            <a href="{{ root_prefix }}/index.html">כל המתכונים</a>
+            <a href="{{ root_prefix }}/tags.html">כל התגיות</a>
+        </nav>
+        {% if tags %}
+        <nav class="recipe-tags" aria-label="תגיות המתכון">
+            {% for tag in tags %}
+            <a class="recipe-tag" href="{{ root_prefix }}/{{ tag.link }}" style="--tag-color: {{ tag.color }}">{{ tag.name }}</a>
+            {% endfor %}
+        </nav>
+        {% endif %}
         {{ content | safe }}
         <script src="{{ wakelock_script }}"></script>
     </body>
