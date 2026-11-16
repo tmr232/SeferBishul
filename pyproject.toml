@@ -15,6 +15,7 @@ dependencies = [
     "nox>=2023.4.22",
     "types-pillow>=10.2.0.20240206",
     "pyyaml>=6.0.3",
+    "more-itertools>=11.2.1",
 ]
 
 
