@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ספר המתכונים של נמיר</title>
   <style>
     @media only screen and (max-width: 1000px) {
@@ -55,6 +56,26 @@
     .toc a:hover {
       text-decoration: underline;
     }
+
+    .view-links {
+      display: inline-flex;
+      gap: .25rem;
+      vertical-align: middle;
+      font-size: .75em;
+    }
+
+    .view-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .view-links a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 {% macro list_recipe(recipe) -%}
@@ -62,7 +83,12 @@
 {%- endmacro %}
 
 <body>
-  <h1>ספר המתכונים של נמיר<a href="picture-menu.html">🖼️</a></h1>
+  <h1>ספר המתכונים של נמיר
+    <span class="view-links" role="navigation" aria-label="תצוגות מתכונים">
+      <a href="picture-menu.html" aria-label="מתכונים בתמונות" title="מתכונים בתמונות"><span aria-hidden="true">🖼️</span></a>
+      <a href="tags.html" aria-label="מתכונים לפי תגיות" title="מתכונים לפי תגיות"><span aria-hidden="true">🏷️</span></a>
+    </span>
+  </h1>
 
   <div class="toc">
     <ul>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if tag %}{{ tag.name }} — {% endif %}תגיות — ספר המתכונים של נמיר</title>
+    <link rel="stylesheet" href="{% if tag %}../{% endif %}static/tags.css" />
+  </head>
+  <body class="tag-browser">
+    <header class="tag-header">
+      <nav aria-label="ניווט ראשי">
+        <a href="{% if tag %}../{% endif %}index.html">כל המתכונים</a>
+        {% if tag %}<a href="../tags.html">כל התגיות</a>{% endif %}
+      </nav>
+      {% if tag %}<h1>{{ tag.name }}</h1>{% endif %}
+    </header>
+    <main{% if not tag and tags %} class="tag-grid" style="--rows: {{ (tags | length + 1) // 2 }}"{% endif %}>
+      {% if tag %}
+      <ul class="tag-recipes" style="--tag-color: {{ tag.color }}">
+        {% for recipe in recipes %}
+        <li><a href="../{{ recipe.link }}">{{ recipe.name }}<span aria-hidden="true">←</span></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+        {% for group in tags %}
+        <a class="tag-tile" href="{{ group.tag.link }}" style="--tag-color: {{ group.tag.color }}">
+          <span>{{ group.tag.name }}</span>
+          <small>{% if group.recipes | length == 1 %}מתכון אחד{% else %}{{ group.recipes | length }} מתכונים{% endif %}</small>
+        </a>
+        {% else %}
+        <p class="tag-empty">עדיין אין תגיות. אפשר בינתיים לבחור מתוך <a href="index.html">כל המתכונים</a>.</p>
+        {% endfor %}
+      {% endif %}
+    </main>
+  </body>
+</html>
