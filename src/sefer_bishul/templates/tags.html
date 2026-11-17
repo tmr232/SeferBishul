@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% with root_prefix = '..' if tag else '.' %}{% include 'pwa.html' %}{% endwith %}
     <title>{% if tag %}{{ tag.name }} — {% endif %}תגיות — ספר המתכונים של נמיר</title>
     <link rel="stylesheet" href="{% if tag %}../{% endif %}static/tags.css" />
   </head>
