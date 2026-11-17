@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+
+# Keep this in sync with the uv version pinned in the GitHub workflows.
+uv_version=0.13.8
+bun_version="$(cat .bun-version)"
+python_version="$(cat .python-version)"
+
+echo "Preparing uv $uv_version and Bun $bun_version"
+SECONDS=0
+if ! command -v uv >/dev/null || [[ "$(uv --version | cut -d ' ' -f 2)" != "$uv_version" ]]; then
+  curl --fail --silent --show-error --location "https://astral.sh/uv/$uv_version/install.sh" |
+    UV_INSTALL_DIR="$HOME/.local/bin" UV_NO_MODIFY_PATH=1 sh
+fi
+if ! command -v bun >/dev/null || [[ "$(bun --version)" != "$bun_version" ]]; then
+  curl --fail --silent --show-error --location https://bun.sh/install |
+    BUN_INSTALL="$HOME/.bun" bash -s -- "bun-v$bun_version"
+fi
+
+# Later Amp commands and supervised services run in separate login shells.
+profile_marker="# SeferBishul toolchain paths"
+if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
+  printf '\n%s\n%s\n' "$profile_marker" \
+    'export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"' >> "$HOME/.bash_profile"
+fi
+echo "Toolchain ready in ${SECONDS}s"
+
+echo "Preparing Python $python_version and locked dependencies"
+SECONDS=0
+uv python install "$python_version"
+uv sync --locked
+bun install --frozen-lockfile
+echo "Dependencies ready in ${SECONDS}s"
