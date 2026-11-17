@@ -198,14 +198,13 @@ def search_entry(tokens: list[Token], recipe: RecipeInfo) -> dict[str, str]:
         if token.type in {"fence", "code_block"}:
             text = token.content.strip()
         elif token.type == "inline":
-            text = "".join(
-                child.content
-                if child.type in {"text", "code_inline"}
-                else " "
-                if child.type in {"softbreak", "hardbreak"}
-                else ""
-                for child in token.children or []
-            )
+            parts = []
+            for child in token.children or []:
+                if child.type in {"text", "code_inline"}:
+                    parts.append(child.content)
+                elif child.type in {"softbreak", "hardbreak"}:
+                    parts.append(" ")
+            text = "".join(parts)
         else:
             continue
         full_text.append(text)

@@ -9,6 +9,7 @@ const results = document.querySelector("#results");
 const status = document.querySelector("#search-status");
 const retry = document.querySelector("#retry");
 let recipes;
+let pointerSelection = false;
 
 function readURL() {
   const params = new URLSearchParams(location.search);
@@ -62,11 +63,21 @@ async function load() {
   }
 }
 
-form.addEventListener("submit", event => { event.preventDefault(); update(); });
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  update();
+  query.blur();
+});
 query.addEventListener("input", update);
 form.addEventListener("change", event => {
   if (event.target.name !== "field") return;
   update();
+});
+filter.addEventListener("click", event => {
+  // Labels forward zero-detail clicks, just like keyboard radio navigation.
+  if (event.detail > 0 && event.target.closest("label")) pointerSelection = true;
+  if (event.target.name !== "field" || !pointerSelection) return;
+  pointerSelection = false;
   filter.open = false;
   filter.querySelector("summary").focus();
 });
@@ -74,9 +85,14 @@ document.addEventListener("click", event => {
   if (!filter.contains(event.target)) filter.open = false;
 });
 filter.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-  filter.open = false;
-  filter.querySelector("summary").focus();
+  if (
+    event.key === "Escape" ||
+    (event.key === "Enter" && event.target.name === "field")
+  ) {
+    event.preventDefault();
+    filter.open = false;
+    filter.querySelector("summary").focus();
+  }
 });
 clear.addEventListener("click", () => {
   query.value = "";
