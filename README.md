@@ -38,6 +38,9 @@
 נדרשים Python 3.15.2, uv 0.13.8 ו־Bun 1.4.4. גרסאות Python ו־Bun
 מוגדרות גם בקבצים `.python-version` ו־`.bun-version`.
 
+באורב חדש, `.agents/setup` מתקין את הגרסאות האלה ואת התלויות הנעולות
+אוטומטית. אפשר להריץ אותו גם ידנית; הרצה חוזרת משתמשת בהתקנות ובמטמון הקיימים.
+
 ```sh
 uv sync --locked
 bun install --frozen-lockfile

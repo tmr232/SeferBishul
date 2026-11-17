@@ -23,3 +23,5 @@ node_modules
 public
 
 __pycache__/
+
+.amp/portals/*
