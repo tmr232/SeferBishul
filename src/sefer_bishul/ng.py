@@ -5,9 +5,10 @@ import shutil
 import unicodedata
 import urllib.parse
 from collections import defaultdict
+from collections.abc import Iterator, Sequence
 from glob import iglob
 from pathlib import Path
-from typing import Iterator, NamedTuple, Self, Sequence, cast
+from typing import NamedTuple, Self, cast
 
 import attrs
 import typer
@@ -19,7 +20,6 @@ from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
 from more_itertools import split_at
 from PIL import Image
-
 
 TAGS_FIELD = "תגיות"
 
@@ -46,7 +46,8 @@ def parse_frontmatter(text: str) -> ParsedFrontmatter:
     if metadata is None:
         metadata = {}
     if not isinstance(metadata, dict):
-        raise ValueError("Recipe frontmatter must be a YAML mapping")
+        # Invalid recipe data keeps the same ValueError contract as other metadata.
+        raise ValueError("Recipe frontmatter must be a YAML mapping")  # noqa: TRY004
 
     return ParsedFrontmatter(text="".join(body), frontmatter=metadata)
 
@@ -206,8 +207,8 @@ def generate_toc(recipes: list[RecipeInfo]) -> list[RecipeInfo | RecipeGroup]:
         groups[group].append(recipe)
 
     result: list[RecipeInfo | RecipeGroup] = sorted(groups.pop("", []))
-    for name, recipes in sorted(groups.items()):
-        result.append(RecipeGroup(name=name, recipes=sorted(recipes)))
+    for name, group_recipes in sorted(groups.items()):
+        result.append(RecipeGroup(name=name, recipes=sorted(group_recipes)))
 
     return result
 

@@ -35,9 +35,29 @@
 
 ## פיתוח
 
+נדרשים Python 3.15.2, uv 0.13.8 ו־Bun 1.4.4. גרסאות Python ו־Bun
+מוגדרות גם בקבצים `.python-version` ו־`.bun-version`.
+
 ```sh
-uv sync
-uv run nox -s lint test build
+uv sync --locked
+bun install --frozen-lockfile
+uv run --locked nox -s lint test build
+```
+
+לעיצוב הקוד: `uv run --locked nox -s format`. Ruff מעצב ובודק את קוד
+Python, ו־mypy בודק טיפוסים. Biome אחראי רק לעיצוב JavaScript ו־JSON;
+oxlint אחראי לבדיקות JavaScript, ללא כללי עיצוב מתחרים. בדיקות JavaScript
+בתיקיית `tests` רצות באמצעות Bun, כולל קובצי `.test.mjs`.
+
+תלויות Python נעולות ב־`uv.lock`, ותלויות כלי JavaScript ב־`bun.lock`.
+לאחר שינוי תלויות מריצים `uv lock --upgrade` או `bun update` בהתאמה.
+תלויות GitHub Actions, כולל תלויות עקיפות, נעולות ב־`.github/workflows/actions.lock`.
+לאחר שינוי workflow מעדכנים ומוודאים את הנעילה:
+
+```sh
+gh extension install github/gh-actions-lock --pin v0.4.1
+gh actions-lock
+gh actions-lock --verify
 ```
 
 האתר נוצר בתיקיית `public`. אפשר להגיש אותה באמצעות שרת קבצים סטטי;

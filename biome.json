@@ -1,0 +1,23 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
+  "files": {
+    "includes": [
+      "!!**/.amp",
+      "src/sefer_bishul/static/**/*.js",
+      "src/sefer_bishul/static/**/*.mjs",
+      "tests/**/*.js",
+      "tests/**/*.mjs",
+      "*.json"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": false
+  },
+  "assist": {
+    "enabled": false
+  }
+}

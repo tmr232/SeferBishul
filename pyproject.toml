@@ -3,24 +3,22 @@ name = "sefer-bishul"
 version = "0.1.0"
 description = ""
 authors = [{ name = "Tamir Bahar" }]
-requires-python = ">=3.13, <3.14"
+requires-python = ">=3.15, <3.16"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "typer>=0.9.0",
-    "jinja2>=3.1.2",
-    "attrs>=23.1.0",
-    "markdown-it-py>=3.0.0",
-    "pillow>=10.2.0",
-    "nox>=2023.4.22",
-    "types-pillow>=10.2.0.20240206",
+    "typer>=0.29.1",
+    "jinja2>=3.1.6",
+    "attrs>=26.1.0",
+    "markdown-it-py>=4.3.0",
+    "pillow>=13.0.0",
     "pyyaml>=6.0.3",
     "more-itertools>=11.2.1",
 ]
 
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.33.0"]
 build-backend = "hatchling.build"
 
 
@@ -29,10 +27,11 @@ build-book = "sefer_bishul.ng:main"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.18.2",
-    "pytest>=7.3.0",
-    "pytest-cov>=4.0.0",
-    "ruff>=0.13.1",
+    "mypy>=2.4.1",
+    "nox>=2026.10.20",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
     "types-pyyaml>=6.0.12.20261113",
 ]
 
