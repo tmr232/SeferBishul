@@ -11,6 +11,7 @@
       <nav aria-label="ניווט ראשי">
         <a href="{% if tag %}../{% endif %}index.html">כל המתכונים</a>
         {% if tag %}<a href="../tags.html">כל התגיות</a>{% endif %}
+        <a href="{% if tag %}../{% endif %}search.html">חיפוש מתכונים</a>
       </nav>
       {% if tag %}<h1>{{ tag.name }}</h1>{% endif %}
     </header>
