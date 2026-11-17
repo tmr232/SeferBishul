@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>חיפוש מתכונים — ספר המתכונים של נמיר</title>
+    {% include 'pwa.html' %}
+    <link rel="stylesheet" href="static/tags.css" />
+    <link rel="stylesheet" href="static/search.css" />
+    <script type="module" src="static/search.js"></script>
+  </head>
+  <body class="tag-browser">
+    <header class="tag-header">
+      <nav aria-label="ניווט ראשי">
+        <a href="index.html">כל המתכונים</a>
+        <a href="tags.html">כל התגיות</a>
+        <a href="picture-menu.html">מתכונים בתמונות</a>
+      </nav>
+      <h1>חיפוש מתכונים</h1>
+    </header>
+    <main class="search-main">
+      <form role="search" id="search-form">
+        <details id="search-filter">
+          <summary aria-label="איפה לחפש?">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </summary>
+          <fieldset class="field-menu">
+            <legend class="visually-hidden">איפה לחפש?</legend>
+            <label><input type="radio" name="field" value="text" checked />בכל המתכון</label>
+            <label><input type="radio" name="field" value="title" />בשמות המתכונים</label>
+            <label><input type="radio" name="field" value="ingredients" />בחומרים</label>
+            <label><input type="radio" name="field" value="instructions" />בהוראות ההכנה</label>
+          </fieldset>
+        </details>
+        <label class="visually-hidden" for="query">חיפוש מתכונים</label>
+        <div class="search-input">
+          <input id="query" name="q" type="search" placeholder="חיפוש מתכונים" autocomplete="off" autofocus />
+          <button type="button" id="clear" aria-label="ניקוי החיפוש" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="m6 6 12 12M6 18 18 6" />
+            </svg>
+          </button>
+        </div>
+      </form>
+      <noscript><p>כדי לחפש צריך להפעיל JavaScript בדפדפן. אפשר גם לעבור אל <a href="index.html">כל המתכונים</a>.</p></noscript>
+      <p id="search-status" role="status" aria-live="polite"></p>
+      <button id="retry" type="button" hidden>ניסיון נוסף</button>
+      <ul id="results" class="search-results" aria-label="תוצאות החיפוש"></ul>
+    </main>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 import enum
 import hashlib
+import json
 import os
 import shutil
 import unicodedata
@@ -187,6 +188,37 @@ class RecipeInfo(NamedTuple):
     tags: tuple[str, ...] = ()
 
 
+def search_entry(tokens: list[Token], recipe: RecipeInfo) -> dict[str, str]:
+    """Index visible text using the same section boundaries as the recipe renderer."""
+    machine = RecipeMachine()
+    sections: dict[State, list[str]] = defaultdict(list)
+    full_text: list[str] = []
+    for token in tokens:
+        machine.process(token)
+        if token.type in {"fence", "code_block"}:
+            text = token.content.strip()
+        elif token.type == "inline":
+            text = "".join(
+                child.content
+                if child.type in {"text", "code_inline"}
+                else " "
+                if child.type in {"softbreak", "hardbreak"}
+                else ""
+                for child in token.children or []
+            )
+        else:
+            continue
+        full_text.append(text)
+        sections[machine.state].append(text)
+    return {
+        "title": recipe.name,
+        "url": recipe.link,
+        "ingredients": " ".join(sections[State.IngredientsFound]),
+        "instructions": " ".join(sections[State.PrepFound]),
+        "text": " ".join(full_text),
+    }
+
+
 @attrs.frozen
 class TagGroup:
     tag: TagInfo
@@ -239,6 +271,7 @@ def copy_static_files(output: Path) -> None:
 
 def build_book(source: Path, images: Path, output: Path):
     recipe_info: list[RecipeInfo] = []
+    search_index: list[dict[str, str]] = []
     os.makedirs(output / "images", exist_ok=True)
     image_manager = ImageManager(
         in_dir=images, in_url="/images", out_dir=output / "images"
@@ -295,6 +328,17 @@ def build_book(source: Path, images: Path, output: Path):
                 tags=tags,
             )
         )
+        search_index.append(search_entry(tokens, recipe_info[-1]))
+
+    (output / "search-index.json").write_text(
+        json.dumps(
+            sorted(search_index, key=lambda entry: entry["title"]), ensure_ascii=False
+        ),
+        encoding="utf-8",
+    )
+    (output / "search.html").write_text(
+        get_env().get_template("search.html").render(), encoding="utf-8"
+    )
 
     tagged_recipes: dict[str, list[RecipeInfo]] = defaultdict(list)
     for recipe in recipe_info:
