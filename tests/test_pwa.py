@@ -14,12 +14,15 @@ class HeadLinks(HTMLParser):
     def __init__(self, text):
         super().__init__()
         self.links = {}
+        self.meta_names = set()
         self.feed(text)
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == "link":
             self.links[attrs["rel"]] = attrs["href"]
+        elif tag == "meta":
+            self.meta_names.add(attrs.get("name", "").lower())
 
 
 @pytest.mark.parametrize("prefix", ["/", "/SeferBishul/"])
@@ -38,6 +41,8 @@ def test_installation_paths_and_icons(tmp_path, prefix):
     assert manifest["lang"] == "he" and manifest["dir"] == "rtl"
     assert manifest["name"] == "ספר המתכונים של נמיר"
     assert manifest["display"] == "standalone"
+    assert "theme_color" not in manifest
+    assert manifest["background_color"] == "#ffffff"
     # Omit id so identity defaults to start_url, not a path at the origin root.
     assert "id" not in manifest
     assert urljoin(manifest_url, manifest["scope"]) == origin + prefix
@@ -48,7 +53,9 @@ def test_installation_paths_and_icons(tmp_path, prefix):
 
     for page in output.rglob("*.html"):
         page_url = origin + prefix + page.relative_to(output).as_posix()
-        links = HeadLinks(page.read_text()).links
+        head = HeadLinks(page.read_text())
+        assert "theme-color" not in head.meta_names
+        links = head.links
         assert urljoin(page_url, links["manifest"]) == manifest_url
         assert urljoin(page_url, links["apple-touch-icon"]) == (
             origin + prefix + "static/icons/apple-touch-icon.png"
