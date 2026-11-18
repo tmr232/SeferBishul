@@ -1,9 +1,11 @@
+import hashlib
 import json
+import struct
 from html.parser import HTMLParser
 from urllib.parse import unquote, urljoin, urlsplit
 
 import pytest
-from PIL import Image
+from PIL import IcoImagePlugin, Image
 
 from sefer_bishul.ng import build_book
 
@@ -51,6 +53,9 @@ def test_installation_paths_and_icons(tmp_path, prefix):
         assert urljoin(page_url, links["apple-touch-icon"]) == (
             origin + prefix + "static/icons/apple-touch-icon.png"
         )
+        favicon_url = urljoin(page_url, links["icon"])
+        assert favicon_url == origin + prefix + "static/favicon.ico"
+        assert (output / urlsplit(favicon_url).path.removeprefix(prefix)).is_file()
 
     assert {(icon["sizes"], icon["purpose"]) for icon in manifest["icons"]} >= {
         ("192x192", "any"),
@@ -65,3 +70,28 @@ def test_installation_paths_and_icons(tmp_path, prefix):
             assert image.mode == "RGB"
     with Image.open(output / "static/icons/apple-touch-icon.png") as image:
         assert image.size == (180, 180)
+
+    favicon = output / "static/favicon.ico"
+    with Image.open(favicon) as image:
+        assert isinstance(image, IcoImagePlugin.IcoImageFile)
+        assert image.format == "ICO"
+        assert image.ico.sizes() == {(16, 16), (32, 32), (48, 48)}
+
+    # SHA-256 of the owner's original PNG exports: each payload stays byte-for-byte
+    # intact, rather than deriving the smaller frames by resizing the largest one.
+    original_hashes = {
+        16: "8fb2a90fa83a4d48c193a8069cdfc11c65e60363650202a4c7bb14219f53bf20",
+        32: "dc58c5dbeb76913dbdc9e2c0a2017156b385e5b6740799617098f5dfa5bb8461",
+        48: "cdf3216b2f13dbdbc69de7dc3f71dab1b7046a7ce97f5ad3bc92db28e43701a1",
+    }
+    data = favicon.read_bytes()
+    assert struct.unpack_from("<HHH", data) == (0, 1, 3)
+    for index, size in enumerate((16, 32, 48)):
+        width, height, _, _, _, depth, length, offset = struct.unpack_from(
+            "<BBBBHHII", data, 6 + 16 * index
+        )
+        assert (width, height, depth) == (size, size, 32)
+        assert (
+            hashlib.sha256(data[offset : offset + length]).hexdigest()
+            == (original_hashes[size])
+        )
