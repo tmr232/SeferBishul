@@ -4,7 +4,7 @@ from urllib.parse import quote, unquote, urlsplit
 import pytest
 from PIL import Image
 
-from sefer_bishul.ng import build_book
+from sefer_bishul.ng import SITE_URL, build_book
 
 
 class SharingPage(HTMLParser):
@@ -29,7 +29,7 @@ class SharingPage(HTMLParser):
 
 
 @pytest.mark.parametrize(
-    "base", ["https://tmr232.github.io/SeferBishul/", "https://example.com/"]
+    "base", [SITE_URL, "https://tmr232.github.io/SeferBishul/", "https://example.com/"]
 )
 def test_recipe_sharing_and_external_navigation(tmp_path, base):
     source, output, images = (
