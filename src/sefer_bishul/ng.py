@@ -23,6 +23,7 @@ from more_itertools import split_at
 from PIL import Image
 
 TAGS_FIELD = "תגיות"
+SITE_URL = "https://tmr232.github.io/SeferBishul/"
 
 
 @attrs.frozen
@@ -181,6 +182,23 @@ class RecipeRenderer(RendererHTML):
     ) -> str:
         return ""
 
+    def link_open(
+        self, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType
+    ) -> str:
+        token = tokens[idx]
+        url = urllib.parse.urlsplit(
+            urllib.parse.urljoin(env["page_url"], token.attrGet("href") or "")
+        )
+        site = urllib.parse.urlsplit(env["site_url"])
+        if url.scheme in {"https", "http"} and (
+            (url.scheme, url.netloc) != (site.scheme, site.netloc)
+            or not url.path.startswith(site.path)
+        ):
+            token.attrSet("target", "_blank")
+            token.attrSet("rel", "noopener noreferrer")
+            token.attrSet("title", "קישור חיצוני")
+        return self.renderToken(tokens, idx, options, env)
+
 
 class RecipeInfo(NamedTuple):
     name: str
@@ -269,7 +287,16 @@ def copy_static_files(output: Path) -> None:
     )
 
 
-def build_book(source: Path, images: Path, output: Path):
+def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_URL):
+    site_url = site_url.rstrip("/") + "/"
+    site = urllib.parse.urlsplit(site_url)
+    if (
+        site.scheme not in {"https", "http"}
+        or not site.netloc
+        or site.query
+        or site.fragment
+    ):
+        raise ValueError("site_url must be an absolute HTTP(S) base URL")
     recipe_info: list[RecipeInfo] = []
     search_index: list[dict[str, str]] = []
     os.makedirs(output / "images", exist_ok=True)
@@ -293,7 +320,17 @@ def build_book(source: Path, images: Path, output: Path):
         hero = get_hero(tokens)
         if hero:
             image_manager.add_image(hero)
-        rendered = md.render(recipe_text)
+        link = path.relative_to(source).with_suffix(".html").as_posix()
+        page_url = site_url + urllib.parse.quote(link)
+        recipe = RecipeInfo(title, link, hero.lstrip("/") if hero else None, tags)
+        entry = search_entry(tokens, recipe)
+        description = entry["text"].removeprefix(title).strip()
+        description = description[:197] + "…" if len(description) > 200 else description
+        description = description or f"מתכון ל{title} מתוך ספר המתכונים של נמיר"
+        image_url = site_url + urllib.parse.quote(
+            recipe.hero or "static/icons/icon-512.png"
+        )
+        rendered = md.render(recipe_text, {"page_url": page_url, "site_url": site_url})
 
         target = (output / path.relative_to(source)).with_suffix(".html")
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -314,21 +351,17 @@ def build_book(source: Path, images: Path, output: Path):
                 wakelock_script=wakelock_script,
                 root_prefix=root_prefix,
                 tags=[TagInfo.from_name(tag) for tag in tags],
+                page_url=page_url,
+                description=description,
+                image_url=image_url,
+                image_alt=title if hero else "ספר המתכונים של נמיר",
             )
         )
 
         target.write_text(html)
 
-        recipe_info.append(
-            RecipeInfo(
-                name=title,
-                link=path.relative_to(source).with_suffix(".html").as_posix(),
-                # Temporary hack, because we don't take the website address
-                hero=hero.lstrip("/") if hero else None,
-                tags=tags,
-            )
-        )
-        search_index.append(search_entry(tokens, recipe_info[-1]))
+        recipe_info.append(recipe)
+        search_index.append(entry)
 
     (output / "search-index.json").write_text(
         json.dumps(
