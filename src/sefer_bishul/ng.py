@@ -462,7 +462,8 @@ def build_book(
         encoding="utf-8",
     )
     (output / "search.html").write_text(
-        get_env().get_template("search.html").render(), encoding="utf-8"
+        get_env().get_template("search.html").render(site_url=site_url),
+        encoding="utf-8",
     )
     (output / "404.html").write_text(
         get_env().get_template("404.html").render(root_prefix=site.path.rstrip("/")),
@@ -479,20 +480,27 @@ def build_book(
         for name, items in sorted(tagged_recipes.items())
     ]
     template = get_env().get_template("tags.html")
-    (output / "tags.html").write_text(template.render(tags=tag_menu), encoding="utf-8")
+    (output / "tags.html").write_text(
+        template.render(tags=tag_menu, site_url=site_url), encoding="utf-8"
+    )
 
     for group in tag_menu:
         target = output / group.tag.link
         target.parent.mkdir(exist_ok=True)
         target.write_text(
-            template.render(tag=group.tag, recipes=group.recipes), encoding="utf-8"
+            template.render(tag=group.tag, recipes=group.recipes, site_url=site_url),
+            encoding="utf-8",
         )
 
     toc_info = generate_toc(recipe_info)
-    toc = get_env().get_template("toc.html.j2").render(toc=toc_info)
+    toc = get_env().get_template("toc.html.j2").render(toc=toc_info, site_url=site_url)
     (output / "index.html").write_text(toc)
 
-    toc = get_env().get_template("pics.html.j2").render(recipes=recipe_info)
+    toc = (
+        get_env()
+        .get_template("pics.html.j2")
+        .render(recipes=recipe_info, site_url=site_url)
+    )
     (output / "picture-menu.html").write_text(toc)
 
     copy_static_files(output)

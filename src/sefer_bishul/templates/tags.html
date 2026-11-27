@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {% with root_prefix = '..' if tag else '.' %}{% include 'pwa.html' %}{% endwith %}
     <title>{% if tag %}{{ tag.name }} — {% endif %}תגיות — ספר המתכונים של נמיר</title>
+    {% with page_path = tag.link if tag else 'tags.html', title = (tag.name ~ ' — ' if tag else '') ~ 'תגיות — ספר המתכונים של נמיר', description = 'מתכונים בתגית ' ~ tag.name ~ ' מתוך ספר המתכונים של נמיר.' if tag else 'עיון במתכונים לפי תגיות בספר המתכונים של נמיר.' %}
+    {% include 'website_metadata.html' %}
+    {% endwith %}
     <link rel="stylesheet" href="{% if tag %}../{% endif %}static/tags.css" />
   </head>
   <body class="tag-browser">
