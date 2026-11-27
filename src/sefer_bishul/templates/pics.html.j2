@@ -5,6 +5,9 @@
   <meta charset="UTF-8" />
   {% include 'pwa.html' %}
   <title>ספר המתכונים של נמיר</title>
+  {% with page_path = 'picture-menu.html', title = 'מתכונים בתמונות — ספר המתכונים של נמיר', description = 'גלריית תמונות המתכונים בספר המתכונים של נמיר.' %}
+  {% include 'website_metadata.html' %}
+  {% endwith %}
   <style>
     @media only screen and (max-width: 1000px) {
       body {

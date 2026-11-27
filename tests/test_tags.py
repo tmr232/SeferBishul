@@ -56,7 +56,7 @@ def test_build_multi_tag_navigation_and_stable_colors(tmp_path):
     assert "סופגניות" in category and "לביבות קישואים" in category
     assert "לחם" not in category
     assert sum(link["href"] == "../r/lbybvt.html" for link in Links(holiday).links) == 1
-    assert "מתכונים בתגית" not in holiday
+    assert "מתכונים בתגית" not in holiday.split("</head>", 1)[1]
     recipe = (output / "r/svpgnyvt.html").read_text()
     assert recipe.count('class="recipe-tag"') == 3
     category_recipe = (output / "r/lbybvt-qyshvym.html").read_text()

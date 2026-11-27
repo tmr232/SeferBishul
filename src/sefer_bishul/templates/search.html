@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>חיפוש מתכונים — ספר המתכונים של נמיר</title>
     {% include 'pwa.html' ignore missing %}
+    {% with page_path = 'search.html', title = 'חיפוש מתכונים — ספר המתכונים של נמיר', description = 'חיפוש לפי שם, חומרים והוראות הכנה בספר המתכונים של נמיר.' %}
+    {% include 'website_metadata.html' %}
+    {% endwith %}
     <link rel="stylesheet" href="static/tags.css" />
     <link rel="stylesheet" href="static/search.css" />
     <script type="module" src="static/search.js"></script>

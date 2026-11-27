@@ -91,3 +91,53 @@ def test_recipe_sharing_and_external_navigation(tmp_path, base):
     long = SharingPage((output / "r/rvk.html").read_text())
     assert long.meta["og:description"] == "א" * 197 + "…"
     assert (output / "static/share.js").is_file()
+
+
+@pytest.mark.parametrize("base", [SITE_URL, "https://example.com/cookbook/"])
+def test_non_recipe_open_graph_metadata(tmp_path, base):
+    source, output = tmp_path / "recipes", tmp_path / "public"
+    source.mkdir()
+    (source / "bread.md").write_text(
+        "---\nתגיות: ['לחם & \"זיתים\"']\n---\n# לחם\n", encoding="utf-8"
+    )
+    build_book(source, tmp_path, output, site_url=base)
+
+    pages = {
+        "index.html": ("", "ספר המתכונים של נמיר", "כל המתכונים"),
+        "picture-menu.html": (
+            "picture-menu.html",
+            "מתכונים בתמונות — ספר המתכונים של נמיר",
+            "גלריית תמונות",
+        ),
+        "search.html": (
+            "search.html",
+            "חיפוש מתכונים — ספר המתכונים של נמיר",
+            "חיפוש לפי שם, חומרים והוראות הכנה",
+        ),
+        "tags.html": (
+            "tags.html",
+            "תגיות — ספר המתכונים של נמיר",
+            "עיון במתכונים לפי תגיות",
+        ),
+        "tags/lkhm-zytym.html": (
+            "tags/lkhm-zytym.html",
+            'לחם & "זיתים" — תגיות — ספר המתכונים של נמיר',
+            'מתכונים בתגית לחם & "זיתים"',
+        ),
+    }
+    for path, (url_path, title, description) in pages.items():
+        page = SharingPage((output / path).read_text())
+        assert page.canonical == page.meta["og:url"] == base + url_path
+        assert page.meta["og:type"] == "website"
+        assert page.meta["og:title"] == title
+        assert page.meta["og:description"].startswith(description)
+        assert page.meta["og:description"] == page.meta["description"]
+        assert page.meta["og:locale"] == "he_IL"
+        assert page.meta["og:site_name"] == "ספר המתכונים של נמיר"
+        assert page.meta["og:image"] == base + "static/icons/icon-512.png"
+        assert page.meta["og:image:alt"] == "ספר המתכונים של נמיר"
+    assert (output / "static/icons/icon-512.png").is_file()
+
+    error = SharingPage((output / "404.html").read_text())
+    assert not any(key and key.startswith("og:") for key in error.meta)
+    assert error.canonical is None
