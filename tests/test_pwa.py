@@ -35,7 +35,9 @@ def test_installation_paths_and_icons(tmp_path, prefix):
     nested.mkdir(parents=True)
     text = "# לחם\n\n## חומרים\n\n- קמח\n\n## הכנה\n\nלערבב\n"
     (source / "לחם.md").write_text(text, encoding="utf-8")
-    (nested / "לחם.md").write_text(text, encoding="utf-8")
+    (nested / "לחם.md").write_text(
+        "---\nמזהה: holiday-bread\n---\n" + text, encoding="utf-8"
+    )
     build_book(source, tmp_path, output, site_url="https://example.com" + prefix)
 
     origin = "https://example.com"

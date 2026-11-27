@@ -2,6 +2,7 @@ import enum
 import hashlib
 import json
 import os
+import re
 import shutil
 import unicodedata
 import urllib.parse
@@ -21,8 +22,10 @@ from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
 from more_itertools import split_at
 from PIL import Image
+from slugify import slugify
 
 TAGS_FIELD = "תגיות"
+SLUG_FIELD = "מזהה"
 SITE_URL = "https://tmr232.github.io/SeferBishul/"
 
 
@@ -76,6 +79,72 @@ def get_tags_from_path(path: Path) -> tuple[str, ...]:
     return (unicodedata.normalize("NFC", category),)
 
 
+def validate_slug(value: object) -> str:
+    if not isinstance(value, str) or not re.fullmatch(
+        r"[a-z0-9]+(?:-[a-z0-9]+)*", value
+    ):
+        raise ValueError(
+            f"Invalid slug {value!r}: use lowercase ASCII letters, digits and single hyphens"
+        )
+    return value
+
+
+def validate_unique_slugs(slugs: dict[str, str]) -> None:
+    owners: dict[str, str] = {}
+    for name, slug in slugs.items():
+        if slug in owners:
+            raise ValueError(f"Duplicate slug {slug!r}: {owners[slug]!r} and {name!r}")
+        owners[slug] = name
+
+
+def get_tag_slugs(source: Path, path: Path) -> dict[str, str]:
+    """Keep saved tag URLs, including retired tags, and default only new names."""
+    saved = yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else {}
+    if not isinstance(saved, dict):
+        # Invalid input data uses the same ValueError contract as frontmatter.
+        raise ValueError(f"{path}: tag slugs must be a YAML mapping")  # noqa: TRY004
+    slugs: dict[str, str] = {}
+    for name, slug in saved.items():
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError(f"{path}: tag names must be non-empty strings")
+        normalized = unicodedata.normalize("NFC", name.strip())
+        if normalized in slugs:
+            raise ValueError(f"{path}: duplicate tag name {normalized!r}")
+        try:
+            slugs[normalized] = validate_slug(slug)
+        except ValueError as error:
+            raise ValueError(f"{path}: tag {name!r}: {error}") from error
+    for recipe in sorted(get_recipes(source)):
+        try:
+            parsed = parse_frontmatter(recipe.read_text(encoding="utf-8"))
+            tags = (
+                *parse_tags(parsed.frontmatter),
+                *get_tags_from_path(recipe.relative_to(source)),
+            )
+            for name in tags:
+                if name not in slugs:
+                    try:
+                        slugs[name] = validate_slug(slugify(name))
+                    except ValueError as error:
+                        raise ValueError(
+                            f"Tag {name!r}: {error}; set its slug in {path}"
+                        ) from error
+        except (ValueError, yaml.YAMLError) as error:
+            raise ValueError(f"{recipe}: {error}") from error
+    validate_unique_slugs(slugs)
+    return slugs
+
+
+def update_tag_slugs(source: Path, tag_slugs: Path | None = None) -> None:
+    """Create/update the editable tag slug mapping without replacing saved values."""
+    path = tag_slugs if tag_slugs is not None else source.parent / "tag-slugs.yaml"
+    slugs = get_tag_slugs(source, path)
+    path.write_text(
+        yaml.safe_dump(slugs, allow_unicode=True, sort_keys=True), encoding="utf-8"
+    )
+    typer.echo(f"Updated {path} ({len(slugs)} tags)")
+
+
 @attrs.frozen
 class TagInfo:
     name: str
@@ -83,11 +152,11 @@ class TagInfo:
     color: str
 
     @classmethod
-    def from_name(cls, name: str) -> Self:
+    def from_name(cls, name: str, slug: str) -> Self:
         digest = hashlib.sha256(name.encode("utf-8")).hexdigest()
-        # Name-based colors and URLs do not shift when another tag is added.
+        # Name-based colors do not shift when a URL changes or another tag is added.
         hue = int(digest[:8], 16) / 0xFFFFFFFF * 360
-        return cls(name, f"tags/{digest}.html", f"hsl({hue:.4f} 65% 84%)")
+        return cls(name, f"tags/{slug}.html", f"hsl({hue:.4f} 65% 84%)")
 
 
 def get_title(tokens: list[Token]) -> str:
@@ -205,6 +274,7 @@ class RecipeInfo(NamedTuple):
     link: str
     hero: str | None
     tags: tuple[str, ...] = ()
+    category: str = ""
 
 
 def search_entry(tokens: list[Token], recipe: RecipeInfo) -> dict[str, str]:
@@ -252,8 +322,7 @@ class RecipeGroup(NamedTuple):
 def generate_toc(recipes: list[RecipeInfo]) -> list[RecipeInfo | RecipeGroup]:
     groups = defaultdict(list)
     for recipe in recipes:
-        group, _, _ = recipe.link.rpartition("/")
-        groups[group].append(recipe)
+        groups[recipe.category].append(recipe)
 
     result: list[RecipeInfo | RecipeGroup] = sorted(groups.pop("", []))
     for name, group_recipes in sorted(groups.items()):
@@ -287,7 +356,13 @@ def copy_static_files(output: Path) -> None:
     )
 
 
-def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_URL):
+def build_book(
+    source: Path,
+    images: Path,
+    output: Path,
+    site_url: str = SITE_URL,
+    tag_slugs: Path | None = None,
+):
     site_url = site_url.rstrip("/") + "/"
     site = urllib.parse.urlsplit(site_url)
     if (
@@ -299,11 +374,15 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
         raise ValueError("site_url must be an absolute HTTP(S) base URL")
     recipe_info: list[RecipeInfo] = []
     search_index: list[dict[str, str]] = []
+    tag_urls = get_tag_slugs(
+        source, tag_slugs if tag_slugs is not None else source.parent / "tag-slugs.yaml"
+    )
+    recipe_slugs: dict[str, str] = {}
     os.makedirs(output / "images", exist_ok=True)
     image_manager = ImageManager(
         in_dir=images, in_url="/images", out_dir=output / "images"
     )
-    for path in get_recipes(source):
+    for path in sorted(get_recipes(source)):
         md = MarkdownIt(renderer_cls=RecipeRenderer)
         try:
             parsed = parse_frontmatter(path.read_text(encoding="utf-8"))
@@ -317,12 +396,25 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
         recipe_text = parsed.text
         tokens = md.parse(recipe_text)
         title = get_title(tokens)
+        try:
+            slug = validate_slug(parsed.frontmatter.get(SLUG_FIELD, slugify(title)))
+        except ValueError as error:
+            raise ValueError(f"{path}: {error}") from error
+        recipe_slugs[str(path)] = slug
+        validate_unique_slugs(recipe_slugs)
         hero = get_hero(tokens)
         if hero:
             image_manager.add_image(hero)
-        link = path.relative_to(source).with_suffix(".html").as_posix()
+        link = f"r/{slug}.html"
         page_url = site_url + urllib.parse.quote(link)
-        recipe = RecipeInfo(title, link, hero.lstrip("/") if hero else None, tags)
+        category = path.relative_to(source).parent.as_posix()
+        recipe = RecipeInfo(
+            title,
+            link,
+            hero.lstrip("/") if hero else None,
+            tags,
+            "" if category == "." else category,
+        )
         entry = search_entry(tokens, recipe)
         description = entry["text"].removeprefix(title).strip()
         description = description[:197] + "…" if len(description) > 200 else description
@@ -332,7 +424,7 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
         )
         rendered = md.render(recipe_text, {"page_url": page_url, "site_url": site_url})
 
-        target = (output / path.relative_to(source)).with_suffix(".html")
+        target = output / link
         target.parent.mkdir(parents=True, exist_ok=True)
         # Links must reach the book root from this recipe's directory, not the domain root.
         root_prefix = output.relative_to(target.parent, walk_up=True).as_posix()
@@ -350,7 +442,7 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
                 content=rendered,
                 wakelock_script=wakelock_script,
                 root_prefix=root_prefix,
-                tags=[TagInfo.from_name(tag) for tag in tags],
+                tags=[TagInfo.from_name(tag, tag_urls[tag]) for tag in tags],
                 page_url=page_url,
                 description=description,
                 image_url=image_url,
@@ -383,7 +475,7 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
             tagged_recipes[name].append(recipe)
 
     tag_menu = [
-        TagGroup(TagInfo.from_name(name), sorted(items))
+        TagGroup(TagInfo.from_name(name, tag_urls[name]), sorted(items))
         for name, items in sorted(tagged_recipes.items())
     ]
     template = get_env().get_template("tags.html")
@@ -408,6 +500,10 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
 
 def main():
     typer.run(build_book)
+
+
+def tag_slugs_main():
+    typer.run(update_tag_slugs)
 
 
 if __name__ == "__main__":

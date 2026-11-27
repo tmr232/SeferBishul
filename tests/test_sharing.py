@@ -42,8 +42,8 @@ def test_recipe_sharing_and_external_navigation(tmp_path, base):
     links = [
         "https://external.example/recipe",
         "//external.example/recipe",
-        base + "לחם.html",
-        "../../לחם.html",
+        base + "r/lkhm.html",
+        "../r/lkhm.html",
         "#הכנה",
         "mailto:cook@example.com",
     ]
@@ -59,10 +59,8 @@ def test_recipe_sharing_and_external_navigation(tmp_path, base):
     (source / "ארוך.md").write_text("# ארוך\n\n" + "א" * 205, encoding="utf-8")
     build_book(source, images, output, site_url=base)
 
-    page = SharingPage(
-        (output / recipe_path.relative_to(source).with_suffix(".html")).read_text()
-    )
-    expected_url = base + quote("חגים/עוד תיקייה/לחם & זיתים.html")
+    page = SharingPage((output / "r/lkhm-zytym.html").read_text())
+    expected_url = base + "r/lkhm-zytym.html"
     assert page.canonical == page.meta["og:url"] == page.share_url == expected_url
     assert page.meta["og:title"] == 'לחם & "זיתים"'
     assert page.meta["og:description"].startswith("פתיחה עם טעם & שמן.")
@@ -87,9 +85,9 @@ def test_recipe_sharing_and_external_navigation(tmp_path, base):
             assert set(link["rel"].split()) == {"noopener", "noreferrer"}
     assert all("target" not in link for link in page.links[:5])
 
-    short = SharingPage((output / "קצר.html").read_text())
+    short = SharingPage((output / "r/qtsr.html").read_text())
     assert short.meta["og:image"] == base + "static/icons/icon-512.png"
     assert short.meta["description"] == "מתכון לקצר מתוך ספר המתכונים של נמיר"
-    long = SharingPage((output / "ארוך.html").read_text())
+    long = SharingPage((output / "r/rvk.html").read_text())
     assert long.meta["og:description"] == "א" * 197 + "…"
     assert (output / "static/share.js").is_file()

@@ -22,14 +22,14 @@ def test_build_search_index_from_recipe_sections(tmp_path: Path):
     assert entries == [
         {
             "title": "לחם & זיתים",
-            "url": "תיקייה/עוד תיקייה/לחם & זיתים.html",
+            "url": "r/lkhm-zytym.html",
             "ingredients": "מרכיבים קמח זיתים תוספות מלח",
             "instructions": "הוראות הכנה ללוש היטב אפייה לאפות חום נמוך",
             "text": "לחם & זיתים הערת פתיחה מרכיבים קמח זיתים תוספות מלח הוראות הכנה ללוש היטב אפייה לאפות חום נמוך",
         },
         {
             "title": "קצר",
-            "url": "קצר.html",
+            "url": "r/qtsr.html",
             "ingredients": "",
             "instructions": "",
             "text": "קצר בלי סעיפים",
