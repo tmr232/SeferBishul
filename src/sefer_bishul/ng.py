@@ -26,7 +26,7 @@ from slugify import slugify
 
 TAGS_FIELD = "תגיות"
 SLUG_FIELD = "מזהה"
-SITE_URL = "https://tmr232.github.io/SeferBishul/"
+SITE_URL = "https://cookbook.baharschwarz.com/"
 
 
 @attrs.frozen

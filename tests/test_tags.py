@@ -6,7 +6,7 @@ from urllib.parse import quote, unquote, urljoin
 import pytest
 import yaml
 
-from sefer_bishul.ng import build_book, update_tag_slugs
+from sefer_bishul.ng import SITE_URL, build_book, update_tag_slugs
 
 
 class Links(HTMLParser):
@@ -72,7 +72,7 @@ def test_build_multi_tag_navigation_and_stable_colors(tmp_path):
     # Every navigation link, including nested recipe return links, resolves.
     for page in output.rglob("*.html"):
         for link in Links(page.read_text()).links:
-            base = "https://tmr232.github.io/SeferBishul/"
+            base = SITE_URL
             page_url = base + quote(page.relative_to(output).as_posix())
             url = urljoin(page_url, str(link["href"]))
             assert url.startswith(base)
@@ -143,8 +143,8 @@ def test_recipe_and_tag_slug_overrides_and_updates(tmp_path):
     assert mapping.read_bytes() == before  # Builds do not rewrite the editable file.
     assert (output / "r/lkhm.html").is_file()
     recipe = (output / "r/soup.html").read_text()
-    assert 'href="https://tmr232.github.io/SeferBishul/r/soup.html"' in recipe
-    assert 'content="https://tmr232.github.io/SeferBishul/r/soup.html"' in recipe
+    assert f'href="{SITE_URL}r/soup.html"' in recipe
+    assert f'content="{SITE_URL}r/soup.html"' in recipe
     assert 'href="../tags/dinner.html"' in recipe
     assert 'href="../tags/bread.html"' in recipe
     assert 'href="../r/soup.html"' in (output / "tags/dinner.html").read_text()
