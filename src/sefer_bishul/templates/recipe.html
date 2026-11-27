@@ -60,12 +60,7 @@
         </style>
     </head>
     <body>
-        <nav class="recipe-nav" aria-label="ניווט ראשי">
-            <a href="{{ root_prefix }}/index.html">כל המתכונים</a>
-            <a href="{{ root_prefix }}/tags.html">כל התגיות</a>
-            <a href="{{ root_prefix }}/search.html">חיפוש מתכונים</a>
-            <a id="share-link" href="{{ page_url }}">שיתוף</a>
-        </nav>
+        {% include 'navigation.html' %}
         <p id="share-status" role="status"></p>
         {% if tags %}
         <nav class="recipe-tags" aria-label="תגיות המתכון">
