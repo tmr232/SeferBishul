@@ -372,6 +372,10 @@ def build_book(source: Path, images: Path, output: Path, site_url: str = SITE_UR
     (output / "search.html").write_text(
         get_env().get_template("search.html").render(), encoding="utf-8"
     )
+    (output / "404.html").write_text(
+        get_env().get_template("404.html").render(root_prefix=site.path.rstrip("/")),
+        encoding="utf-8",
+    )
 
     tagged_recipes: dict[str, list[RecipeInfo]] = defaultdict(list)
     for recipe in recipe_info:

@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urljoin
 
 import pytest
 
@@ -73,12 +73,11 @@ def test_build_multi_tag_navigation_and_stable_colors(tmp_path):
     # Every navigation link, including nested recipe return links, resolves.
     for page in output.rglob("*.html"):
         for link in Links(page.read_text()).links:
-            if link.get("id") == "share-link":
-                assert link["href"] == "https://tmr232.github.io/SeferBishul/" + quote(
-                    page.relative_to(output).as_posix()
-                )
-            else:
-                assert (page.parent / unquote(str(link["href"]))).is_file()
+            base = "https://tmr232.github.io/SeferBishul/"
+            page_url = base + quote(page.relative_to(output).as_posix())
+            url = urljoin(page_url, str(link["href"]))
+            assert url.startswith(base)
+            assert (output / unquote(url.removeprefix(base))).is_file()
 
     write_recipe(source, "חדש.md", "---\nתגיות: [אפייה]\n---\n")
     build_book(source, tmp_path, output)

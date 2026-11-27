@@ -14,6 +14,7 @@ class HeadLinks(HTMLParser):
     def __init__(self, text):
         super().__init__()
         self.links = {}
+        self.anchors = []
         self.meta_names = set()
         self.feed(text)
 
@@ -21,6 +22,8 @@ class HeadLinks(HTMLParser):
         attrs = dict(attrs)
         if tag == "link":
             self.links[attrs["rel"]] = attrs["href"]
+        elif tag == "a":
+            self.anchors.append(attrs["href"])
         elif tag == "meta":
             self.meta_names.add(attrs.get("name", "").lower())
 
@@ -33,7 +36,7 @@ def test_installation_paths_and_icons(tmp_path, prefix):
     text = "# לחם\n\n## חומרים\n\n- קמח\n\n## הכנה\n\nלערבב\n"
     (source / "לחם.md").write_text(text, encoding="utf-8")
     (nested / "לחם.md").write_text(text, encoding="utf-8")
-    build_book(source, tmp_path, output)
+    build_book(source, tmp_path, output, site_url="https://example.com" + prefix)
 
     origin = "https://example.com"
     manifest_url = origin + prefix + "static/manifest.webmanifest"
@@ -63,6 +66,22 @@ def test_installation_paths_and_icons(tmp_path, prefix):
         favicon_url = urljoin(page_url, links["icon"])
         assert favicon_url == origin + prefix + "static/favicon.ico"
         assert (output / urlsplit(favicon_url).path.removeprefix(prefix)).is_file()
+
+    error_text = (output / "404.html").read_text()
+    assert "אופס! כנראה הזזנו את המתכון. תשאלו את טמיר או נעם איפה הוא" in error_text
+    assert 'lang="he" dir="rtl"' in error_text
+    assert "share-link" not in error_text
+    error = HeadLinks(error_text)
+    assert error.anchors == [
+        prefix + name for name in ("index.html", "tags.html", "search.html")
+    ]
+    # Pages serves the same 404 HTML at the missing URL, not at /404.html.
+    for missing in ("deleted.html", "חגים/עוד/מתכון-חסר.html"):
+        missing_url = origin + prefix + missing
+        for link in error.anchors + list(error.links.values()):
+            target_url = urljoin(missing_url, link)
+            assert target_url.startswith(origin + prefix)
+            assert (output / urlsplit(target_url).path.removeprefix(prefix)).is_file()
 
     assert {(icon["sizes"], icon["purpose"]) for icon in manifest["icons"]} >= {
         ("192x192", "any"),
