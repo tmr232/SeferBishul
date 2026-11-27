@@ -13,6 +13,10 @@
 .tag-header nav, .recipe-nav { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
 .tag-header nav a, .recipe-nav a { padding-block: .75rem; color: #253e33; }
 .tag-header h1 { margin: 1rem 0 .5rem; font-size: 2rem; overflow-wrap: anywhere; }
+@media screen and (max-width: 1000px) and (orientation: portrait) {
+  .recipe-nav { column-gap: .5rem; }
+  .recipe-nav #share-link { flex-basis: 100%; }
+}
 .tag-browser main { flex: 1; }
 .tag-grid {
   display: grid;
