@@ -14,6 +14,7 @@ dependencies = [
     "pillow>=13.0.0",
     "pyyaml>=6.0.3",
     "more-itertools>=11.2.1",
+    "python-slugify>=9.2.0",
 ]
 
 
@@ -24,6 +25,7 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 build-book = "sefer_bishul.ng:main"
+update-tag-slugs = "sefer_bishul.ng:tag_slugs_main"
 
 [dependency-groups]
 dev = [
