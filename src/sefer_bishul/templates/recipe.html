@@ -6,7 +6,21 @@
         {% include 'pwa.html' %}
         <link rel="stylesheet" href="{{ root_prefix }}/static/tags.css" />
         <title>{{ title }}</title>
+        <link rel="canonical" href="{{ page_url }}" />
+        <meta name="description" content="{{ description }}" />
+        <meta property="og:type" content="article" />
+        <meta property="og:locale" content="he_IL" />
+        <meta property="og:site_name" content="ספר המתכונים של נמיר" />
+        <meta property="og:title" content="{{ title }}" />
+        <meta property="og:description" content="{{ description }}" />
+        <meta property="og:url" content="{{ page_url }}" />
+        <meta property="og:image" content="{{ image_url }}" />
+        <meta property="og:image:alt" content="{{ image_alt }}" />
         <style>
+            #share-status { font-size: .85em; }
+            #share-status:empty { display: none; }
+            @media print { #share-status { display: none; } }
+
             @media only screen and (max-width: 1000px) {
                 body {
                     font-size: 2.5vmax;
@@ -50,7 +64,9 @@
             <a href="{{ root_prefix }}/index.html">כל המתכונים</a>
             <a href="{{ root_prefix }}/tags.html">כל התגיות</a>
             <a href="{{ root_prefix }}/search.html">חיפוש מתכונים</a>
+            <a id="share-link" href="{{ page_url }}">שיתוף</a>
         </nav>
+        <p id="share-status" role="status"></p>
         {% if tags %}
         <nav class="recipe-tags" aria-label="תגיות המתכון">
             {% for tag in tags %}
@@ -59,6 +75,7 @@
         </nav>
         {% endif %}
         {{ content | safe }}
+        <script src="{{ root_prefix }}/static/share.js" defer></script>
         <script src="{{ wakelock_script }}"></script>
     </body>
 </html>
